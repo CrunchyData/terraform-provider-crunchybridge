@@ -31,7 +31,7 @@ output "regions" {
 
 ### Required
 
-- `provider_id` (String) The [cloud provider](https://docs.crunchybridge.com/api/provider) hosting clusters.
+- `provider_id` (String) The [cloud provider](https://docs.crunchybridge.com/api/provider) hosting clusters. Allows `aws`, `gcp`, or `azure`
 
 ### Read-Only
 

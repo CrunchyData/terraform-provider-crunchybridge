@@ -32,7 +32,7 @@ func dataSourceCloudProvider() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			// "Request" Fields
 			"provider_id": {
-				Description:  "The [cloud provider](https://docs.crunchybridge.com/api/provider) hosting clusters.",
+				Description:  "The [cloud provider](https://docs.crunchybridge.com/api/provider) hosting clusters. Allows `aws`, `gcp`, or `azure`",
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"aws", "gcp", "azure"}, false),

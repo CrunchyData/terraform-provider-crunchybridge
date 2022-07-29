@@ -42,8 +42,8 @@ output "demo_status" {
 - `is_ha` (Boolean) Whether the cluster is high availability, meaning that it has a secondary it can fail over to quickly in case the primary becomes unavailable. Defaults to `false`
 - `major_version` (Number) The cluster's major Postgres version. For example, `14`. Defaults to [Create Cluster](https://docs.crunchybridge.com/api/cluster/#create-cluster) defaults.
 - `plan_id` (String) The ID of the [cluster's plan](https://docs.crunchybridge.com/concepts/plans-pricing/). Determines instance, CPU, and memory. Defaults to `hobby-2`.
-- `provider_id` (String) The [cloud provider](https://docs.crunchybridge.com/api/provider) where the cluster is located. Defaults to `aws`
-- `region_id` (String) The [provider region](https://docs.crunchybridge.com/api/provider#region) where the cluster is located. Defaults to `us-east-1`
+- `provider_id` (String) The [cloud provider](https://docs.crunchybridge.com/api/provider) where the cluster is located. Defaults to `aws`, allows `aws`, `gcp`, or `azure`
+- `region_id` (String) The [provider region](https://docs.crunchybridge.com/api/provider#region) where the cluster is located. Defaults to `us-west-1`
 - `storage` (Number) The amount of storage available to the cluster in GB (gigabytes). Defaults to 100.
 - `wait_until_ready` (Boolean) Treats the create operation as incomplete until the cluster reports a ready status. Defaults to `false`
 

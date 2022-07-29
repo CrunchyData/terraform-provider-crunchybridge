@@ -1,7 +1,8 @@
 terraform {
   required_providers {
     crunchybridge = {
-      source = "CrunchyData/crunchybridge"
+      source  = "CrunchyData/crunchybridge"
+      version = "0.1.0"
     }
   }
 }

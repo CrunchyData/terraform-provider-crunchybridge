@@ -63,14 +63,14 @@ func resourceCluster() *schema.Resource {
 			},
 			"provider_id": {
 				DefaultFunc:  staticDefault("aws"),
-				Description:  "The [cloud provider](https://docs.crunchybridge.com/api/provider) where the cluster is located. Defaults to `aws`",
+				Description:  "The [cloud provider](https://docs.crunchybridge.com/api/provider) where the cluster is located. Defaults to `aws`, allows `aws`, `gcp`, or `azure`",
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"aws", "gcp", "azure"}, false),
 			},
 			"region_id": {
-				DefaultFunc: staticDefault("us-east-1"),
-				Description: "The [provider region](https://docs.crunchybridge.com/api/provider#region) where the cluster is located. Defaults to `us-east-1`",
+				DefaultFunc: staticDefault("us-west-1"),
+				Description: "The [provider region](https://docs.crunchybridge.com/api/provider#region) where the cluster is located. Defaults to `us-west-1`",
 				Required:    true,
 				Type:        schema.TypeString,
 			},
