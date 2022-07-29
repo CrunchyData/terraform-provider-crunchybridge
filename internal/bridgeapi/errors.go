@@ -20,4 +20,6 @@ import "errors"
 var (
 	ErrorBadRequest = errors.New("invalid request")
 	ErrorConflict   = errors.New("non-unique name specified in request")
+
+	ErrorOldSecretFormat = errors.New("unexpected format for api secret, regeneration may be needed")
 )

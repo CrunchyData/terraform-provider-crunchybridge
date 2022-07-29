@@ -29,6 +29,7 @@ const (
 	idConfigName     = "application_id"
 	secretConfigName = "application_secret"
 	urlConfigName    = "bridgeapi_url"
+	tokenConfigName  = "require_token_swap"
 )
 
 func init() {
@@ -64,16 +65,24 @@ func New(version string) func() *schema.Provider {
 			Schema: map[string]*schema.Schema{
 				idConfigName: {
 					Type:        schema.TypeString,
+					Description: "The application id component of the Crunchy Bridge API key.",
 					DefaultFunc: schema.EnvDefaultFunc("APPLICATION_ID", nil),
 					Required:    true,
 				},
 				secretConfigName: {
 					Type:        schema.TypeString,
+					Description: "The application secret component of the Crunchy Bridge API key.",
 					DefaultFunc: schema.EnvDefaultFunc("APPLICATION_SECRET", nil),
 					Required:    true,
 				},
+				tokenConfigName: {
+					Type:        schema.TypeBool,
+					Description: "When true, forces an exchange of the API key for a short-lived bearer token.",
+					Optional:    true,
+				},
 				urlConfigName: {
 					Type:        schema.TypeString,
+					Description: "The API URL for the Crunchy Bridge platform API. Most users should not need to change this value.",
 					DefaultFunc: schema.EnvDefaultFunc("BRIDGE_API_URL", "https://api.crunchybridge.com"),
 					Required:    true,
 				},
@@ -109,10 +118,17 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			return nil, diag.FromErr(err)
 		}
 
-		c, err := bridgeapi.NewClient(apiUrl, login,
+		options := []bridgeapi.ClientOption{
 			bridgeapi.WithContext(ctx),
 			bridgeapi.WithUserAgent(userAgent),
-		)
+		}
+
+		swapReq := d.Get(tokenConfigName).(bool)
+		if swapReq {
+			options = append(options, bridgeapi.WithTokenExchange(), bridgeapi.WithImmediateLogin())
+		}
+
+		c, err := bridgeapi.NewClient(apiUrl, login, options...)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}

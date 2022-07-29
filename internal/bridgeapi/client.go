@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -40,6 +41,10 @@ var (
 
 var (
 	BridgeProviderNS = uuid.MustParse("cc67b0e5-7152-4d54-85ff-49a5c17fbbfe")
+
+	// Maximum time construct for Golang
+	// Unix time uses an offset of 62135596801 to cover pre-start-of-epoch times
+	maxTime = time.Unix(1<<63-62135596801, 999999999)
 )
 
 type ClientOption func(*Client) error
@@ -51,6 +56,7 @@ type Client struct {
 	apiTarget         *url.URL
 	client            *http.Client
 	credential        Login
+	legacyAuth        bool
 	useIdempotencyKey bool
 	userAgent         string
 	tokenExpires      time.Time
@@ -133,6 +139,15 @@ func WithIdempotencyKey() ClientOption {
 	}
 }
 
+// WithTokenExchange instructs the client to force a token exchange for a short-
+// lived token (gen 1 auth) instead of the user-managed bearer token (gen 2 auth)
+func WithTokenExchange() ClientOption {
+	return func(c *Client) error {
+		c.legacyAuth = true
+		return nil
+	}
+}
+
 func (c *Client) login() error {
 	// No-op if already logged in, maybe add forced login later for error handling
 	c.RLock()
@@ -142,37 +157,46 @@ func (c *Client) login() error {
 		return nil
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.apiTarget.String()+"/access-tokens", nil)
-	if err != nil {
-		return fmt.Errorf("error creating token login request: %w", err)
+	if c.legacyAuth {
+		req, err := http.NewRequest(http.MethodPost, c.apiTarget.String()+"/access-tokens", nil)
+		if err != nil {
+			return fmt.Errorf("error creating token login request: %w", err)
+		}
+		req.SetBasicAuth(c.credential.Key, c.credential.Secret)
+
+		// Ensure only one attempting to refresh token
+		c.Lock()
+		defer c.Unlock()
+
+		resp, err := c.client.Do(req)
+		if err != nil {
+			return fmt.Errorf("error submitting login request: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized {
+			return fmt.Errorf("API returned status %d for login [%s]", resp.StatusCode, c.credential.Key)
+		} else if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("API returned unexpected response %d for login [%s]", resp.StatusCode, c.credential.Key)
+		}
+
+		var tr tokenResponse
+		err = json.NewDecoder(resp.Body).Decode(&tr)
+		if err != nil {
+			return fmt.Errorf("error unmarshaling token response body: %w", err)
+		}
+
+		c.activeToken = tr.Token
+		c.activeTokenID = tr.TokenID
+		c.tokenExpires = time.Now().Add(time.Duration(tr.ExpiresIn) * time.Second)
+	} else {
+		if !strings.HasPrefix(c.credential.Secret, "cbkey_") {
+			return ErrorOldSecretFormat
+		}
+
+		c.activeToken = c.credential.Secret
+		c.tokenExpires = maxTime
 	}
-	req.SetBasicAuth(c.credential.Key, c.credential.Secret)
-
-	// Ensure only one attempting to refresh token
-	c.Lock()
-	defer c.Unlock()
-
-	resp, err := c.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("error submitting login request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized {
-		return fmt.Errorf("API returned status %d for login [%s]", resp.StatusCode, c.credential.Key)
-	} else if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("API returned unexpected response %d for login [%s]", resp.StatusCode, c.credential.Key)
-	}
-
-	var tr tokenResponse
-	err = json.NewDecoder(resp.Body).Decode(&tr)
-	if err != nil {
-		return fmt.Errorf("error unmarshaling token response body: %w", err)
-	}
-
-	c.activeToken = tr.Token
-	c.activeTokenID = tr.TokenID
-	c.tokenExpires = time.Now().Add(time.Duration(tr.ExpiresIn) * time.Second)
 
 	return nil
 }
@@ -183,7 +207,8 @@ func (c *Client) logout() error {
 	c.RLock()
 	tokenCurrent := (c.activeToken != "" && time.Until(c.tokenExpires) > 0)
 	c.RUnlock()
-	if !tokenCurrent {
+	if !c.legacyAuth || !tokenCurrent {
+		c.activeToken = ""
 		return nil
 	}
 
