@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"flag"
+	"strings"
 
 	"github.com/CrunchyData/terraform-provider-crunchybridge/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
@@ -28,11 +29,15 @@ func main() {
 	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
+	version = strings.TrimSpace(version)
+	if version == "" {
+		version = "0.0.0-dev"
+	}
+
 	opts := &plugin.ServeOpts{
 		Debug: debugMode,
 
-		// ProviderAddr: "registry.terraform.io/crunchydata/bridge",
-		ProviderAddr: "github.com/CrunchyData/crunchybridge",
+		ProviderAddr: "registry.terraform.io/CrunchyData/crunchybridge",
 
 		ProviderFunc: provider.New(version),
 	}
