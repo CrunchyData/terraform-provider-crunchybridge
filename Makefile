@@ -34,8 +34,8 @@ install: build
 arch = darwin_amd64 darwin_arm64 linux_amd64 linux_arm64 linux_arm windows_amd64
 
 release: version.txt $(arch:%=${BINARY}_${TAG_VER}_%.zip)
-	test -n "$(GPG_USER_ID)" # $GPG_USER_ID
-	test -n "$(GPG_PASSPHRASE)" # $GPG_PASSPHRASE
+	test -n "$(GPG_USER_ID)" # GPG_USER_ID
+	test -n "$(GPG_PASSPHRASE)" # GPG_PASSPHRASE
 	cp terraform-registry-manifest.json $(RELTEMPDIR)/${BINARY}_${TAG_VER}_manifest.json
 	cd $(RELTEMPDIR) && sha256sum *.zip *.json > ${BINARY}_${TAG_VER}_SHA256SUMS
 	@cd $(RELTEMPDIR) && gpg --detach-sign --pinentry-mode loopback --passphrase "${GPG_PASSPHRASE}" -u "${GPG_USER_ID}" ${BINARY}_${TAG_VER}_SHA256SUMS
