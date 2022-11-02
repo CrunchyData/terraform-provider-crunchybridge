@@ -39,7 +39,7 @@ type ClusterDetail struct {
 	HighAvailability bool      `json:"is_ha"`
 	PGMajorVersion   int       `json:"major_version"`
 	MaintWindowStart int       `json:"maintenance_window_start"`
-	MemoryGB         int       `json:"memory"`
+	MemoryGB         float64   `json:"memory"`
 	Name             string    `json:"name"`
 	PlanID           string    `json:"plan_id"`
 	ProviderID       string    `json:"provider_id"`
