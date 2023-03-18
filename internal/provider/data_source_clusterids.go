@@ -51,26 +51,26 @@ func dataSourceClusterIDs() *schema.Resource {
 func dataSourceClusterIDsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*bridgeapi.Client)
 
-	account, err := client.Account()
+	account, err := client.Account(ctx)
 	if err != nil {
-		return diag.FromErr(err)
+		return diag.Errorf("failed to get account details: %v", err)
 	}
+
 	d.SetId(account.ID)
 
 	teamID := d.Get("team_id").(string)
 
-	diags := []diag.Diagnostic{}
 	var clusters []bridgeapi.ClusterDetail
 
 	if teamID == "" {
-		clusters, err = client.GetAllClusters()
+		clusters, err = client.GetAllClusters(ctx)
 		if err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+			return diag.Errorf("failed to get all clusters: %v", err)
 		}
 	} else {
-		clusters, err = client.ClustersForTeam(teamID)
+		clusters, err = client.ClustersForTeam(ctx, teamID)
 		if err != nil {
-			diags = append(diags, diag.FromErr(err)...)
+			return diag.Errorf("failed to get clusters for team: %v", err)
 		}
 	}
 
@@ -78,10 +78,11 @@ func dataSourceClusterIDsRead(ctx context.Context, d *schema.ResourceData, meta 
 	for _, cluster := range clusters {
 		clusterMap[cluster.Name] = cluster.ID
 	}
+
 	err = d.Set("cluster_ids_by_name", clusterMap)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		return diag.Errorf("failed to set 'cluster_ids_by_name': %v", err)
 	}
 
-	return diag.Diagnostics(diags)
+	return nil
 }

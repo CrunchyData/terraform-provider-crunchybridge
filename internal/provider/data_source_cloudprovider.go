@@ -57,7 +57,7 @@ func dataSourceCloudProvider() *schema.Resource {
 						"plan_memory": {
 							Computed:    true,
 							Description: "The amount of memory on the plan’s instance in gigabytes.",
-							Type:        schema.TypeInt,
+							Type:        schema.TypeFloat,
 						},
 						"plan_name": {
 							Computed:    true,
@@ -100,36 +100,46 @@ func dataSourceCloudProviderRead(ctx context.Context, d *schema.ResourceData, me
 
 	id := d.Get("provider_id").(string)
 	d.SetId("cloudprovider_" + id)
-	diags := []diag.Diagnostic{}
 
-	providers, err := client.Providers()
+	var diags diag.Diagnostics
+
+	providers, err := client.Providers(ctx)
 	if err != nil {
-		return diag.FromErr(err)
+		return diag.Errorf("failed to fetch providers: %v", err)
 	}
 
 	var found bridgeapi.Provider
+
 	for _, p := range providers {
 		if p.ID == id {
 			found = p
 		}
 	}
+
 	if found.ID == "" {
-		return diag.Errorf("Unable to find provider information for provider [%s]", id)
+		return diag.Errorf("unable to find provider information for provider [%s]", id)
 	}
 
-	plans := []map[string]interface{}{}
-	regions := []map[string]string{}
+	var (
+		plans   []map[string]interface{}
+		regions []map[string]string
+	)
 
 	for _, plan := range found.Plans {
 		values := map[string]interface{}{
 			"plan_id":     plan.ID,
 			"plan_cpu":    plan.CPU,
-			"plan_memory": plan.Memory,
+			"plan_memory": plan.MemoryGB,
 			"plan_name":   plan.Name,
 		}
+
 		plans = append(plans, values)
 	}
-	d.Set("plans", plans)
+
+	err = d.Set("plans", plans)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
 
 	for _, region := range found.Regions {
 		values := map[string]string{
@@ -139,7 +149,11 @@ func dataSourceCloudProviderRead(ctx context.Context, d *schema.ResourceData, me
 		}
 		regions = append(regions, values)
 	}
-	d.Set("regions", regions)
 
-	return diag.Diagnostics(diags)
+	err = d.Set("regions", regions)
+	if err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+
+	return diags
 }

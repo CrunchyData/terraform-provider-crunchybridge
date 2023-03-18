@@ -136,7 +136,7 @@ func resourceCluster() *schema.Resource {
 			"memory": {
 				Computed:    true,
 				Description: "The total amount of memory available on the cluster's instance in GB (gigabytes).",
-				Type:        schema.TypeInt,
+				Type:        schema.TypeFloat,
 			},
 			"updated_at": {
 				Computed:    true,
@@ -166,7 +166,7 @@ func resourceClusterCreate(ctx context.Context, d *schema.ResourceData, meta int
 
 	tflog.Trace(ctx, "sending cluster resource create request to API")
 
-	id, err := client.CreateCluster(req)
+	id, err := client.CreateCluster(ctx, req)
 	if err != nil {
 		return diag.Errorf("failed to create cluster: %s", err)
 	}
@@ -177,8 +177,9 @@ func resourceClusterCreate(ctx context.Context, d *schema.ResourceData, meta int
 
 	if waitReady := d.Get("wait_until_ready").(bool); waitReady {
 		delay := 10 * time.Second // Set to terraform's notification status interval on create
+
 		for ready, elapsed := false, time.Duration(0); !ready; elapsed += delay {
-			status, err := client.ClusterStatus(id)
+			status, err := client.ClusterStatus(ctx, id)
 			if err != nil {
 				tflog.Error(ctx, "error obtaining cluster ready status", map[string]interface{}{
 					"error": err,
@@ -206,86 +207,58 @@ func resourceClusterRead(ctx context.Context, d *schema.ResourceData, meta inter
 
 	id := d.Get("id").(string)
 
-	cd, err := client.ClusterDetail(id)
+	cd, err := client.ClusterDetail(ctx, id)
 	if err != nil {
-		return diag.FromErr(err)
+		return diag.Errorf("failed to get cluster details: %v", err)
 	}
 
-	diags := []diag.Diagnostic{}
+	var diags diag.Diagnostics
 
-	err = d.Set("id", cd.ID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("cpu", cd.CPU)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("created_at", cd.Created.Format(time.RFC3339))
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("is_ha", cd.HighAvailability)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("major_version", cd.PGMajorVersion)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("maintenance_window_start", cd.MaintWindowStart)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("memory", cd.MemoryGB)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("name", cd.Name)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("plan_id", cd.PlanID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("provider_id", cd.ProviderID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("region_id", cd.RegionID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("storage", cd.StorageGB)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("team_id", cd.TeamID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("updated_at", cd.Updated.Format(time.RFC3339))
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	set := map[string]interface{}{
+		"id":                       cd.ID,
+		"cpu":                      cd.CPU,
+		"created_at":               cd.Created.Format(time.RFC3339),
+		"is_ha":                    cd.HighAvailability,
+		"major_version":            cd.PGMajorVersion,
+		"maintenance_window_start": cd.MaintWindowStart,
+		"memory":                   cd.MemoryGB,
+		"name":                     cd.Name,
+		"plan_id":                  cd.PlanID,
+		"provider_id":              cd.ProviderID,
+		"region_id":                cd.RegionID,
+		"storage":                  cd.StorageGB,
+		"team_id":                  cd.TeamID,
+		"updated_at":               cd.Updated.Format(time.RFC3339),
 	}
 
-	return diag.Diagnostics(diags)
+	for k, v := range set {
+		err := d.Set(k, v)
+		if err != nil {
+			diags = append(diags, diag.Errorf(
+				"failed to set %q: %v", k, err,
+			)...)
+		}
+	}
+
+	return diags
 }
 
 func resourceClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*bridgeapi.Client)
-	diags := []diag.Diagnostic{}
+	var diags diag.Diagnostics
 
+	client := meta.(*bridgeapi.Client)
 	clusterID := d.Id()
 
 	noUpgSupport := []string{"provider_id", "region_id", "team_id", "wait_until_ready"}
 	for _, key := range noUpgSupport {
 		if d.HasChange(key) {
-			diags = append(diags, diag.Errorf("provider does not support in-place update for [%s]", key)...)
+			diags = append(diags, diag.Errorf(
+				"provider does not support in-place update for [%s]", key)...)
 		}
 	}
-	// If unsupported fields have changed, error out so the user can correct them before applying good changes
+
+	// If unsupported fields have changed, error out so the user can correct
+	// them before applying good changes
 	if len(diags) > 0 {
 		return diags
 	}
@@ -293,7 +266,8 @@ func resourceClusterUpdate(ctx context.Context, d *schema.ResourceData, meta int
 	// Update call on client
 	if d.HasChange("name") {
 		newName := d.Get("name").(string)
-		err := client.UpdateCluster(clusterID, bridgeapi.ClusterUpdateRequest{
+
+		err := client.UpdateCluster(ctx, clusterID, bridgeapi.ClusterUpdateRequest{
 			Name: &newName,
 		})
 		if err != nil {
@@ -303,29 +277,26 @@ func resourceClusterUpdate(ctx context.Context, d *schema.ResourceData, meta int
 
 	// Upgrade call on client
 	if d.HasChanges("plan_id", "is_ha", "storage", "major_version") {
-		req := bridgeapi.ClusterUpgradeRequest{}
-		var newPlan string
-		var newDisk, newVer int
-		var newHA bool
+		var req bridgeapi.ClusterUpgradeRequest
 
 		if d.HasChange("plan_id") {
-			newPlan = d.Get("plan_id").(string)
+			newPlan := d.Get("plan_id").(string)
 			req.PlanID = &newPlan
 		}
 		if d.HasChange("is_ha") {
-			newHA = d.Get("is_ha").(bool)
+			newHA := d.Get("is_ha").(bool)
 			req.HighAvailability = &newHA
 		}
 		if d.HasChange("storage") {
-			newDisk = d.Get("storage").(int)
+			newDisk := d.Get("storage").(int)
 			req.StorageGB = &newDisk
 		}
 		if d.HasChange("major_version") {
-			newVer = d.Get("major_version").(int)
+			newVer := d.Get("major_version").(int)
 			req.PGMajorVersion = &newVer
 		}
 
-		err := client.UpgradeCluster(clusterID, req)
+		err := client.UpgradeCluster(ctx, clusterID, req)
 		if err != nil {
 			diags = append(diags, diag.Errorf("error while upgrading cluster: %s", err)...)
 		}
@@ -343,7 +314,7 @@ func resourceClusterDelete(ctx context.Context, d *schema.ResourceData, meta int
 
 	clusterID := d.Id()
 
-	err := client.DeleteCluster(clusterID)
+	err := client.DeleteCluster(ctx, clusterID)
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -89,15 +89,16 @@ func dataSourceRolesRead(ctx context.Context, d *schema.ResourceData, meta inter
 	client := meta.(*bridgeapi.Client)
 
 	id := d.Get("id").(string)
-	d.SetId(id)
 
-	roleList, err := client.ClusterRoles(id)
+	roleList, err := client.ClusterRoles(ctx, id)
 	if err != nil {
-		return diag.FromErr(err)
+		return diag.Errorf("failed to get cluster roles: %v", err)
 	}
 
-	diags := []diag.Diagnostic{}
-	userRoles := []map[string]string{}
+	var (
+		diags     diag.Diagnostics
+		userRoles []map[string]string
+	)
 
 	for _, roleItem := range roleList {
 		roleMap := map[string]string{
@@ -107,20 +108,22 @@ func dataSourceRolesRead(ctx context.Context, d *schema.ResourceData, meta inter
 			"uri":        roleItem.URI,
 		}
 
-		if roleItem.Name == "postgres" {
+		switch roleItem.Name {
+		case "postgres":
 			err = d.Set("superuser", roleMap)
 			if err != nil {
 				diags = append(diags, diag.FromErr(err)...)
 			}
-		} else if roleItem.Name == "application" {
+		case "application":
 			err = d.Set("application", roleMap)
 			if err != nil {
 				diags = append(diags, diag.FromErr(err)...)
 			}
-		} else {
+		default:
 			userRoles = append(userRoles, roleMap)
 		}
 	}
+
 	if len(userRoles) > 0 {
 		err = d.Set("user_roles", userRoles)
 		if err != nil {
@@ -128,5 +131,5 @@ func dataSourceRolesRead(ctx context.Context, d *schema.ResourceData, meta inter
 		}
 	}
 
-	return diag.Diagnostics(diags)
+	return diags
 }

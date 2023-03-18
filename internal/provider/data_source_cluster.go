@@ -70,7 +70,7 @@ func dataSourceCluster() *schema.Resource {
 			"memory": {
 				Computed:    true,
 				Description: "The total amount of memory available on the cluster's instance in GB (gigabytes).",
-				Type:        schema.TypeInt,
+				Type:        schema.TypeFloat,
 			},
 			"name": {
 				Computed:    true,
@@ -117,75 +117,38 @@ func dataSourceClusterRead(ctx context.Context, d *schema.ResourceData, meta int
 	id := d.Get("id").(string)
 	d.SetId(id)
 
-	cd, err := client.ClusterDetail(id)
+	cd, err := client.ClusterDetail(ctx, id)
 	if err != nil {
-		return diag.FromErr(err)
+		return diag.Errorf("failed to get cluster details: %v", err)
 	}
 
-	diags := []diag.Diagnostic{}
+	var diags diag.Diagnostics
 
-	// Apparently, this pain is reward for not having another level of indirection on the schema
-	//
-	// ResourceData.Set() only understands setting map values, so if the schema matches the return value
-	// from the API, you have to map each field yourself, which is decent for decoupling but inconvenient.
-	//
-	// Maybe one day auto-populate with json struct tag <-> schema mapping?
-	err = d.Set("id", cd.ID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("cpu", cd.CPU)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("created_at", cd.Created.Format(time.RFC3339))
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("is_ha", cd.HighAvailability)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("postgres_version_id", cd.PGMajorVersion)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("maintenance_window_start", cd.MaintWindowStart)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("memory", cd.MemoryGB)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("name", cd.Name)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("plan_id", cd.PlanID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("provider_id", cd.ProviderID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("region_id", cd.RegionID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("storage", cd.StorageGB)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("team_id", cd.TeamID)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("updated_at", cd.Updated.Format(time.RFC3339))
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	set := map[string]interface{}{
+		"id":                       cd.ID,
+		"cpu":                      cd.CPU,
+		"created_at":               cd.Created.Format(time.RFC3339),
+		"is_ha":                    cd.HighAvailability,
+		"postgres_version_id":      cd.PGMajorVersion,
+		"maintenance_window_start": cd.MaintWindowStart,
+		"memory":                   cd.MemoryGB,
+		"name":                     cd.Name,
+		"plan_id":                  cd.PlanID,
+		"provider_id":              cd.ProviderID,
+		"region_id":                cd.RegionID,
+		"storage":                  cd.StorageGB,
+		"team_id":                  cd.TeamID,
+		"updated_at":               cd.Updated.Format(time.RFC3339),
 	}
 
-	return diag.Diagnostics(diags)
+	for k, v := range set {
+		err := d.Set(k, v)
+		if err != nil {
+			diags = append(diags, diag.Errorf(
+				"failed to set %q: %v", k, err,
+			)...)
+		}
+	}
+
+	return diags
 }

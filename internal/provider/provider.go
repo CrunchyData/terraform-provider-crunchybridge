@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,13 +66,13 @@ func New(version string) func() *schema.Provider {
 				idConfigName: {
 					Type:        schema.TypeString,
 					Description: "The application id component of the Crunchy Bridge API key.",
-					DefaultFunc: schema.EnvDefaultFunc("APPLICATION_ID", nil),
+					DefaultFunc: schema.EnvDefaultFunc("APPLICATION_ID", ""),
 					Required:    true,
 				},
 				secretConfigName: {
 					Type:        schema.TypeString,
 					Description: "The application secret component of the Crunchy Bridge API key.",
-					DefaultFunc: schema.EnvDefaultFunc("APPLICATION_SECRET", nil),
+					DefaultFunc: schema.EnvDefaultFunc("APPLICATION_SECRET", ""),
 					Required:    true,
 				},
 				tokenConfigName: {
@@ -97,10 +97,9 @@ func New(version string) func() *schema.Provider {
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		// Setup diagnostic message slice
-		diags := []diag.Diagnostic{}
-
-		// Provider.UserAgent provides a UserAgent string with the passed parameters, Terraform version, SDK version, and other bits:
+		// Provider.UserAgent provides a UserAgent string with the
+		// passed parameters, Terraform version, SDK version, and other
+		// bits:
 		userAgent := p.UserAgent("terraform-provider-crunchybridge", version)
 
 		id := d.Get(idConfigName).(string)
@@ -133,6 +132,6 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			return nil, diag.FromErr(err)
 		}
 
-		return c, diags
+		return c, nil
 	}
 }
