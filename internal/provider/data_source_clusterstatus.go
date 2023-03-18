@@ -91,28 +91,27 @@ func dataSourceStatusRead(ctx context.Context, d *schema.ResourceData, meta inte
 	id := d.Get("id").(string)
 	d.SetId(id)
 
-	cs, err := client.ClusterStatus(id)
+	cs, err := client.ClusterStatus(ctx, id)
 	if err != nil {
-		return diag.FromErr(err)
+		return diag.Errorf("failed to get cluster status: %v", err)
 	}
 
-	diags := []diag.Diagnostic{}
+	var diags diag.Diagnostics
 
-	err = d.Set("state", cs.State)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+	set := map[string]interface{}{
+		"state":              cs.State,
+		"disk_available_mb":  cs.DiskUsage.Available,
+		"disk_total_size_mb": cs.DiskUsage.Total,
+		"disk_used_mb":       cs.DiskUsage.Used,
 	}
-	err = d.Set("disk_available_mb", cs.DiskUsage.Available)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("disk_total_size_mb", cs.DiskUsage.Total)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("disk_used_mb", cs.DiskUsage.Used)
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+
+	for k, v := range set {
+		err := d.Set(k, v)
+		if err != nil {
+			diags = append(diags, diag.Errorf(
+				"failed to set %q: %v", k, err,
+			)...)
+		}
 	}
 
 	// Don't set oldest_backup if time zero value (i.e. was originally nulled at API level)
@@ -124,19 +123,20 @@ func dataSourceStatusRead(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	if len(cs.OngoingUpgrade.Operations) > 0 {
-		updates := []interface{}{}
+		var updates []interface{}
+
 		for _, step := range cs.OngoingUpgrade.Operations {
-			us := map[string]interface{}{
+			updates = append(updates, map[string]interface{}{
 				"flavor": step.Flavor,
 				"state":  step.State,
-			}
-			updates = append(updates, us)
+			})
 		}
+
 		err = d.Set("operations", updates)
 		if err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	return diag.Diagnostics(diags)
+	return diags
 }

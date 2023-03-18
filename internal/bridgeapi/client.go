@@ -30,13 +30,15 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	routeAccount       string = "/account"
-	routeClusters      string = "/clusters"
-	routeClusterRole   string = "/clusters/%s/roles"
-	routeClusterStatus string = "/clusters/%s/status"
-	routeProviders     string = "/providers"
-	routeTeams         string = "/teams"
+const (
+	routeAccount        = "/account"
+	routeCluster        = "/clusters/%s"
+	routeClusterUpgrade = "/clusters/%s/upgrade"
+	routeClusters       = "/clusters"
+	routeClusterRole    = "/clusters/%s/roles/%s"
+	routeClusterStatus  = "/clusters/%s/status"
+	routeProviders      = "/providers"
+	routeTeams          = "/teams"
 )
 
 var (
@@ -267,4 +269,20 @@ func (c *Client) setRequestUserAgent(req *http.Request) {
 func (c *Client) setCommonHeaders(req *http.Request) {
 	c.setRequestBearer(req)
 	c.setRequestUserAgent(req)
+}
+
+func (c *Client) resolve(path string, params ...url.Values) *url.URL {
+	u := c.apiTarget.ResolveReference(&url.URL{Path: path})
+
+	q := u.Query()
+
+	for _, p := range params {
+		for name, value := range p {
+			q[name] = value
+		}
+	}
+
+	u.RawQuery = q.Encode()
+
+	return u
 }

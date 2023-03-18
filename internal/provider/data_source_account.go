@@ -76,12 +76,12 @@ func dataSourceAccount() *schema.Resource {
 func dataSourceAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*bridgeapi.Client)
 
-	acct, err := client.Account()
+	acct, err := client.Account(ctx)
 	if err != nil {
-		return diag.FromErr(err)
+		return diag.Errorf("failed to retrieve account information: %v", err)
 	}
 
-	diags := []diag.Diagnostic{}
+	var diags diag.Diagnostics
 
 	err = d.Set("id", acct.ID)
 	if err != nil {
@@ -95,23 +95,26 @@ func dataSourceAccountRead(ctx context.Context, d *schema.ResourceData, meta int
 	if acct.DefaultTeamID == "" {
 		acct.DefaultTeamID = acct.ID
 	}
+
 	err = d.Set("default_team", acct.DefaultTeamID)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
+
 	err = d.Set("personal_team", acct.ID)
 	if err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 
-	teams, err := client.AccountTeams()
+	teams, err := client.AccountTeams(ctx)
 	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
+		return diag.Errorf("failed to retrieve account teams: %v", err)
 	}
 
 	// REVIEW: Given personal team, should always be true, remove?
 	if len(teams) > 0 {
-		teamInfo := []interface{}{}
+		var teamInfo []interface{}
+
 		for _, team := range teams {
 			teamItem := map[string]interface{}{
 				"team_id":   team.ID,
@@ -120,11 +123,12 @@ func dataSourceAccountRead(ctx context.Context, d *schema.ResourceData, meta int
 			}
 			teamInfo = append(teamInfo, teamItem)
 		}
-		err = d.Set("team_membership", teamInfo)
+
+		err := d.Set("team_membership", teamInfo)
 		if err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	}
 
-	return diag.Diagnostics(diags)
+	return diags
 }
