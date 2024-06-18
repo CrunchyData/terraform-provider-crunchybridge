@@ -2,7 +2,7 @@ TEST?=$$(go list ./... | grep -v 'vendor')
 HOST=github.com
 NAME=crunchybridge
 BINARY=terraform-provider-crunchybridge
-TAG_VER?=0.1.0
+TAG_VER?=0.2.0
 RELTEMPDIR?=release_tmp
 CMD_SHA256SUM?="sha256sum" # sometimes 'shasum -a 256'
 
