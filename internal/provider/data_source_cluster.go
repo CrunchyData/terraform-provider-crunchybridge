@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,7 +54,7 @@ func dataSourceCluster() *schema.Resource {
 			},
 			"postgres_version_id": {
 				Computed:    true,
-				Description: "The cluster's major Postgres version. For example, `14`.",
+				Description: "The cluster's major Postgres version. For example, `16`.",
 				Type:        schema.TypeInt,
 			},
 			"maintenance_window_start": {
@@ -70,7 +70,7 @@ func dataSourceCluster() *schema.Resource {
 			"memory": {
 				Computed:    true,
 				Description: "The total amount of memory available on the cluster's instance in GB (gigabytes).",
-				Type:        schema.TypeInt,
+				Type:        schema.TypeFloat,
 			},
 			"name": {
 				Computed:    true,

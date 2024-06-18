@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -96,11 +96,11 @@ func resourceCluster() *schema.Resource {
 				Type:        schema.TypeBool,
 			},
 			"major_version": {
-				Default:      14,
-				Description:  "The cluster's major Postgres version. For example, `14`. Defaults to [Create Cluster](https://docs.crunchybridge.com/api/cluster/#create-cluster) defaults.",
+				Default:      16,
+				Description:  "The cluster's major Postgres version. For example, `16`. Defaults to [Create Cluster](https://docs.crunchybridge.com/api/cluster/#create-cluster) defaults.",
 				Optional:     true,
 				Type:         schema.TypeInt,
-				ValidateFunc: validation.IntAtLeast(12),
+				ValidateFunc: validation.IntAtLeast(14),
 			},
 			"wait_until_ready": {
 				Description: "Treats the create operation as incomplete until the cluster reports a ready status. Defaults to `false`",
@@ -136,7 +136,7 @@ func resourceCluster() *schema.Resource {
 			"memory": {
 				Computed:    true,
 				Description: "The total amount of memory available on the cluster's instance in GB (gigabytes).",
-				Type:        schema.TypeInt,
+				Type:        schema.TypeFloat,
 			},
 			"updated_at": {
 				Computed:    true,

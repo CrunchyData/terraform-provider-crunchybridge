@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +39,7 @@ type ClusterDetail struct {
 	HighAvailability bool      `json:"is_ha"`
 	PGMajorVersion   int       `json:"major_version"`
 	MaintWindowStart int       `json:"maintenance_window_start"`
-	MemoryGB         int       `json:"memory"`
+	MemoryGB         float64   `json:"memory"` // 64 precision isn't required, but likely default arch
 	Name             string    `json:"name"`
 	PlanID           string    `json:"plan_id"`
 	ProviderID       string    `json:"provider_id"`
@@ -116,11 +116,11 @@ type ProviderDisk struct {
 }
 
 type Plan struct {
-	ID     string `json:"id"`
-	CPU    int    `json:"cpu"`
-	Memory int    `json:"memory"`
-	Name   string `json:"display_name"`
-	Rate   int    `json:"rate"`
+	ID     string  `json:"id"`
+	CPU    int     `json:"cpu"`
+	Memory float64 `json:"memory"` // 64 precision isn't required, but likely default arch
+	Name   string  `json:"display_name"`
+	Rate   int     `json:"rate"`
 }
 
 type Region struct {

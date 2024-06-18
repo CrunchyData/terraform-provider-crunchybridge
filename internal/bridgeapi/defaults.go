@@ -42,7 +42,7 @@ func DefaultClusterName() string {
 	// 10 bits for adj
 	ixAdj := (entropy & 0x0000FFC0) >> 6
 	// 3 bits for digit 1
-	digit1 := 1 + (entropy & 0x00000038) >> 3
+	digit1 := 1 + (entropy&0x00000038)>>3
 	// 3 bits for digit 2
 	digit2 := 1 + (entropy & 0x00000007)
 

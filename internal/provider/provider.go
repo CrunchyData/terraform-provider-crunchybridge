@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,9 +65,9 @@ func New(version string) func() *schema.Provider {
 			Schema: map[string]*schema.Schema{
 				idConfigName: {
 					Type:        schema.TypeString,
-					Description: "The application id component of the Crunchy Bridge API key.",
+					Description: "The application id component of the Crunchy Bridge API key. (deprecated)",
 					DefaultFunc: schema.EnvDefaultFunc("APPLICATION_ID", nil),
-					Required:    true,
+					Optional:    true,
 				},
 				secretConfigName: {
 					Type:        schema.TypeString,
@@ -105,8 +105,8 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 
 		id := d.Get(idConfigName).(string)
 		secret := d.Get(secretConfigName).(string)
-		if (id == "") || (secret == "") {
-			return nil, diag.Errorf("%s and %s must be configured to non-empty strings for this provider", idConfigName, secretConfigName)
+		if secret == "" {
+			return nil, diag.Errorf("%s must be configured to a non-empty string for this provider", secretConfigName)
 		}
 		login := bridgeapi.Login{
 			Key:    id,
