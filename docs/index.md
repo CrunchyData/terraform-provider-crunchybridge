@@ -37,11 +37,11 @@ provider "crunchybridge" {
 
 ### Required
 
-- `application_id` (String) The application id component of the Crunchy Bridge API key.
 - `application_secret` (String) The application secret component of the Crunchy Bridge API key.
 
 ### Optional
 
+- `application_id` (String) The application id component of the Crunchy Bridge API key. (deprecated)
 - `bridgeapi_url` (String) The API URL for the Crunchy Bridge platform API. Most users should not need to change this value.
 - `require_token_swap` (Boolean) When true, forces an exchange of the API key for a short-lived bearer token.
 
