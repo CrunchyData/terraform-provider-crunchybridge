@@ -54,7 +54,7 @@ func dataSourceCluster() *schema.Resource {
 			},
 			"postgres_version_id": {
 				Computed:    true,
-				Description: "The cluster's major Postgres version. For example, `14`.",
+				Description: "The cluster's major Postgres version. For example, `16`.",
 				Type:        schema.TypeInt,
 			},
 			"maintenance_window_start": {

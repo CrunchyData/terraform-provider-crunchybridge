@@ -96,11 +96,11 @@ func resourceCluster() *schema.Resource {
 				Type:        schema.TypeBool,
 			},
 			"major_version": {
-				Default:      14,
-				Description:  "The cluster's major Postgres version. For example, `14`. Defaults to [Create Cluster](https://docs.crunchybridge.com/api/cluster/#create-cluster) defaults.",
+				Default:      16,
+				Description:  "The cluster's major Postgres version. For example, `16`. Defaults to [Create Cluster](https://docs.crunchybridge.com/api/cluster/#create-cluster) defaults.",
 				Optional:     true,
 				Type:         schema.TypeInt,
-				ValidateFunc: validation.IntAtLeast(12),
+				ValidateFunc: validation.IntAtLeast(14),
 			},
 			"wait_until_ready": {
 				Description: "Treats the create operation as incomplete until the cluster reports a ready status. Defaults to `false`",

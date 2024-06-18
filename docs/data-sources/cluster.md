@@ -38,7 +38,7 @@ output "demo" {
 - `memory` (Number) The total amount of memory available on the cluster's instance in GB (gigabytes).
 - `name` (String) A human-readable name for the cluster.
 - `plan_id` (String) The ID of the [cluster's plan](https://docs.crunchybridge.com/concepts/plans-pricing/). Determines instance, CPU, and memory.
-- `postgres_version_id` (Number) The cluster's major Postgres version. For example, `14`.
+- `postgres_version_id` (Number) The cluster's major Postgres version. For example, `16`.
 - `provider_id` (String) The [cloud provider](https://docs.crunchybridge.com/api/provider) where the cluster is located.
 - `region_id` (String) The [provider region](https://docs.crunchybridge.com/api/provider#region) where the cluster is located.
 - `storage` (Number) The amount of storage available to the cluster in GB (gigabytes).
