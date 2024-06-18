@@ -70,7 +70,7 @@ func dataSourceCluster() *schema.Resource {
 			"memory": {
 				Computed:    true,
 				Description: "The total amount of memory available on the cluster's instance in GB (gigabytes).",
-				Type:        schema.TypeInt,
+				Type:        schema.TypeFloat,
 			},
 			"name": {
 				Computed:    true,

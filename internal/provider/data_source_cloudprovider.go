@@ -57,7 +57,7 @@ func dataSourceCloudProvider() *schema.Resource {
 						"plan_memory": {
 							Computed:    true,
 							Description: "The amount of memory on the plan’s instance in gigabytes.",
-							Type:        schema.TypeInt,
+							Type:        schema.TypeFloat,
 						},
 						"plan_name": {
 							Computed:    true,

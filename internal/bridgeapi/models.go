@@ -39,7 +39,7 @@ type ClusterDetail struct {
 	HighAvailability bool      `json:"is_ha"`
 	PGMajorVersion   int       `json:"major_version"`
 	MaintWindowStart int       `json:"maintenance_window_start"`
-	MemoryGB         int       `json:"memory"`
+	MemoryGB         float64   `json:"memory"` // 64 precision isn't required, but likely default arch
 	Name             string    `json:"name"`
 	PlanID           string    `json:"plan_id"`
 	ProviderID       string    `json:"provider_id"`
@@ -116,11 +116,11 @@ type ProviderDisk struct {
 }
 
 type Plan struct {
-	ID     string `json:"id"`
-	CPU    int    `json:"cpu"`
-	Memory int    `json:"memory"`
-	Name   string `json:"display_name"`
-	Rate   int    `json:"rate"`
+	ID     string  `json:"id"`
+	CPU    int     `json:"cpu"`
+	Memory float64 `json:"memory"` // 64 precision isn't required, but likely default arch
+	Name   string  `json:"display_name"`
+	Rate   int     `json:"rate"`
 }
 
 type Region struct {
