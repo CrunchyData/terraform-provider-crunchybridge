@@ -9,6 +9,7 @@ import (
 // providerFactories are used to instantiate a provider during acceptance testing.
 // The factory function will be invoked for every Terraform CLI command executed
 // to create a provider server to which the CLI can reattach.
+//
 //lint:ignore U1000 used in other test files
 var providerFactories = map[string]func() (*schema.Provider, error){
 	"scaffolding": func() (*schema.Provider, error) {
