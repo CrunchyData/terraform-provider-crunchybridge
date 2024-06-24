@@ -13,13 +13,12 @@ terraform {
   required_providers {
     crunchybridge = {
       source = "CrunchyData/crunchybridge"
-      version = "0.1.0"
+      version = "0.2.0"
     }
   }
 }
 
 provider "crunchybridge" {
-  application_id     = vars.app_id
   application_secret = vars.app_secret
 }
 

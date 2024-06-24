@@ -19,16 +19,12 @@ terraform {
   required_providers {
     crunchybridge = {
       source = "CrunchyData/crunchybridge"
-      version = "0.1.0"
+      version = "0.2.0"
     }
   }
 }
 
 provider "crunchybridge" {
-  // not a valid cred
-  // be chill security friends
-  // your instinct helps all
-  application_id     = "i72j3uzffbglzbhfrhnalgirwq"
   application_secret = "uLXm2Icjsv2w-8kWu3g0ToEaM0mDqbDk9v-AjFkzgD4"
 }
 
