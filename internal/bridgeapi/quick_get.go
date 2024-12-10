@@ -76,16 +76,13 @@ func (c *Client) AccountTeams() (Teams, error) {
 		return []Team{}, fmt.Errorf("unexpected response status from API, status: %d", resp.StatusCode)
 	}
 
-	response := map[string][]Team{
-		"teams": {},
-	}
+	var response TeamList
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		return []Team{}, fmt.Errorf("error unmarshaling response body (account detail): %w", err)
 	}
 
-	list := response["teams"]
-	return list, nil
+	return response.Teams, nil
 }
 
 func (c *Client) Providers() ([]Provider, error) {

@@ -130,6 +130,12 @@ type Region struct {
 	Multiplier float64 `json:"multiplier"`
 }
 
+type TeamList struct {
+	HasMore    bool   `json:"has_more"`
+	NextCursor string `json:"next_cursor"`
+	Teams      Teams  `json:"teams"`
+}
+
 type Teams []Team
 
 type Team struct {
