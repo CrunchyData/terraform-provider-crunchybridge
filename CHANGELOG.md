@@ -1,3 +1,6 @@
+## 0.3.0
+  - Bugfix-specific release for API incompatibility
+
 ## 0.2.0
   * Updates PostgreSQL default version to 16
   * Raises minimum PostgreSQL version to 14

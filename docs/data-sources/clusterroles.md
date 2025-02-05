@@ -50,5 +50,3 @@ Read-Only:
 - `password` (String)
 - `team_id` (String)
 - `uri` (String)
-
-

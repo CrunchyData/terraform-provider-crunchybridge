@@ -58,5 +58,3 @@ Read-Only:
 - `region_id` (String)
 - `region_location` (String)
 - `region_name` (String)
-
-

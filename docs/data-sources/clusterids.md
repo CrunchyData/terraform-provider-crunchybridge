@@ -31,5 +31,3 @@ output "cluster_ids" {
 
 - `cluster_ids_by_name` (Map of String) A mapping of cluster names to their respective cluster IDs in [EID format](https://docs.crunchybridge.com/api-concepts/eid).
 - `id` (String) The ID of this resource.
-
-

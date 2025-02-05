@@ -44,5 +44,3 @@ output "demo" {
 - `storage` (Number) The amount of storage available to the cluster in GB (gigabytes).
 - `team_id` (String) The ID of the parent [team](https://docs.crunchybridge.com/concepts/teams/) for the cluster.
 - `updated_at` (String) Time at which the cluster was last updated formatted as [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339).
-
-

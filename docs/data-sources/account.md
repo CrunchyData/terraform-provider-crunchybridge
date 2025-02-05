@@ -38,5 +38,3 @@ Read-Only:
 - `team_id` (String)
 - `team_name` (String)
 - `team_role` (String)
-
-

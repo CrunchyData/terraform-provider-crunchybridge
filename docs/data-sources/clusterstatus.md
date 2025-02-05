@@ -45,5 +45,3 @@ Read-Only:
 
 - `flavor` (String)
 - `state` (String)
-
-

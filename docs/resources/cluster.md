@@ -55,5 +55,3 @@ output "demo_status" {
 - `maintenance_window_start` (Number) The hour of day which a maintenance window can possibly start. This should be an integer from `0` to `23` representing the hour of day which maintenance is allowed to start, with `0` representing midnight UTC. Maintenance windows are typically three hours long starting from this hour. A `null` value means that no explicit maintenance window has been set and that maintenance is allowed to occur at any time.
 - `memory` (Number) The total amount of memory available on the cluster's instance in GB (gigabytes).
 - `updated_at` (String) Time at which the cluster was last updated formatted as [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339).
-
-
